@@ -3,6 +3,7 @@ import pandas as pd
 import numpy as np
 import csv
 from numpy.random import rand
+import subprocess
 
 def grid_scan_generator(MD1_range, MDP_range, MD3_range, output_file_name='colm_input_scan.csv', mass_hierarchy=True):
     """This is the GRID SCAN GENERATOR. It creates a grid scan, which takes the desired ranges of the masses MD1,MDP,MD3 as inputs,
@@ -31,7 +32,7 @@ def grid_scan_generator(MD1_range, MDP_range, MD3_range, output_file_name='colm_
     grid_scan.to_csv(output_file_name)
     return grid_scan
 
-    def random_scan_generator(MD1_range, MDP_range, MD3_range, output_file_name='colm_input_scan.csv', mass_hierarchy=True):
+def random_scan_generator(MD1_range, MDP_range, MD3_range, output_file_name='colm_input_scan.csv', mass_hierarchy=True):
     """This is the RANDOM SCAN GENERATOR. It creates a random scan, which takes the desired ranges of the masses MD1,MDP,MD3 as inputs,
     in the format of [max_value,min_value,population_size], eg, MD1_range = [50,1000,100] will give you 100 MD1 values, from 50 to 1000.
     This function will then create all the possible combinations of MD1,MDP,MD3 allowed by the mass hierarchy (if mass_hierarch=True) 

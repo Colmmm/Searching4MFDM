@@ -1,6 +1,6 @@
 config_dict = {
-    'input_csv_file': 'using_r_value_grid_input_scan.csv',
-    'output_csv_file': 'using_r_value_grid_output_scan.csv',
+    'input_csv_file': '../input_scans/INPUT_first_after_git.csv',
+    'output_csv_file': '../output_scans/OUTPUT_first_after_git.csv',
     'calchep_dir': '/home/colmsam/MASTERS_project/CalcHEPwork/',
     'fresh_input': True,
     'calchep_batch_file': 'scripting_batch_file',
@@ -13,6 +13,6 @@ config_dict = {
     'c_file_name': 'the_one_sasha_sent_me',
     'micromegas_output_file': 'micromegas_output_parameters.csv',
     'starting_row': 0,
-    'points_in_scan': 36,
+    'points_in_scan': 2,
     'mode': 2
     }

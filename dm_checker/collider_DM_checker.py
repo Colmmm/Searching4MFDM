@@ -93,9 +93,9 @@ def collider_single_point_checker(MD1, MDP, MD3, config_dict):
 	"""
 	#print('\n\n\nParameter:')
 	# 1)create the batch file (note variable batch_file is just the str of the name of the batch file)
-	batch_file = batch_file_generator(MD1, MDP, MD3, config_dict['calchep_batch_file'], config_dict['calchep_dir'], config_dict['output_events'], config_dict['local'])
+	batch_file = batch_file_generator(MD1, MDP, MD3, config_dict['calchep_batch_file'], config_dict['calchep_dir'], config_dict['calchep_output_events'], config_dict['local'])
 	# 2) Create the lhe files (note variable lhe_file is just the string of the lhe events file name)
-	lhe_file = events_generator(config_dict['calchep_batch_file'], config_dir['calchep_dir'], config_dir['calchep_output_events'], config_dir['checkmate_dir'])
+	lhe_file = events_generator(config_dict['calchep_batch_file'], config_dict['calchep_dir'], config_dict['calchep_output_events'], config_dict['checkmate_dir'])
 	# 3) Make a decision on those events, where result is 1 for being allowed, 0 for not allowed
 	result = decision_generator(lhe_file, config_dict['checkmate_dir'], config_dict['checkmate_card_file'])
 	return {'LHC': result}
