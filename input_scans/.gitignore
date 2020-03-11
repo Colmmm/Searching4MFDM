@@ -1,2 +1,4 @@
 *csv
 rough_notebook_for_colm.ipynb
+..gitignore.swp
+.ipynb_checkpoints
