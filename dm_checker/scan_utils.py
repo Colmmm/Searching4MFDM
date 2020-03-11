@@ -68,14 +68,20 @@ def scan_reader(input_scan_csv):
         for row in reader:
             yield row
 
-def generate_output_scan_template_csv(output_csv='colm_output_scan.csv'):
-    """Write the output csv, with the columns, ready for rows to be added to it"""
-    with open(output_csv, 'w', newline='') as file:
-        writer = csv.writer(file)
-        writer.writerow(['MD1', 'MDP', 'MD3', 'delta_MDP', 'delta_MD3', 'allowed_by_LHC', 'allowed_by_DD', 'allowed_by_ID', 'allowed_by_RD'])
+def generate_output_scan_template_csv(output_csv='colm_output_scan.csv', input_csv='colm_input_scan.csv', fresh_input=True, starting_row=0):
+    """Write the output csv, with the columns, ready for rows to be added to it. If fresh_input=True then initial output scan will be empty csv
+    if fresh_input=False then the initial output scan will be the rows of the input scan which are already complete."""
+    if fresh_input == True:
+        with open(output_csv, 'w') as file:
+            writer = csv.writer(file)
+            writer.writerow(['MD1', 'MDP', 'MD3', 'delta_MDP', 'delta_MD3', 'allowed_by_LHC', 'allowed_by_DD', 'allowed_by_ID', 'allowed_by_RD'])
+    else:
+        with open(input_csv, 'rw') as input_file, open(output_csv) as output_file:
+            completed_rows = input_file.readlines()[:starting_row]  
+            output_file.writelines(completed_rows)
     return None
 
-def store_result(input_row, result, search_type, output_csv='colm_output_scan.csv', allowed_dict = {'LHC': 0, 'DD': 1, 'ID': 2, 'RD':3}):
+def store_result(input_row,  output_csv, allowed_dict = {'LHC': 0, 'DD': 1, 'ID': 2, 'RD':3}, **kwargs):
     """This takes the result of whether the parameter space is allowed or not,
     and stores it in the csv scan output file. Result parameter input should be a 1 for allowed and 0
     for not allowed. Search type should be either: 'LHC', 'DD', 'ID', 'RD'
@@ -83,13 +89,14 @@ def store_result(input_row, result, search_type, output_csv='colm_output_scan.cs
     #define the cols to do with if a result is allowed or not, as theyre the ones which could potentially change
     allowed_cols = input_row[6:]
     # exact col of allowed_cols depends on search_type, and needs to be changed depending on the result
-    allowed_cols[allowed_dict[search_type]] = result
+    #kwargs is our result and should be a dict, containing the search type and result, eg, {'RD': 0}
+    for key, value in kwargs.items():
+        allowed_cols[allowed_dict[key]] = value
     #time to add our data
-    with open(output_csv, 'a', newline='') as file:
+    with open(output_csv, 'a') as file:
         writer = csv.writer(file)
         writer.writerow(input_row[:6] + allowed_cols)
     return None
-
 
 def run(*popenargs, **kwargs):
     """This is a backport version of subprocess.run() which is only available in python 3.5, but as this scripting pipeline

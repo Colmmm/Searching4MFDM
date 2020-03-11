@@ -2,6 +2,7 @@ import csv
 from tqdm import tqdm
 import sys
 import subprocess
+from scan_utils import run, scan_reader, generate_output_scan_template_csv
 from config_dict import config_dict
 
 
@@ -84,37 +85,7 @@ def decision_generator(lhe_file, checkmate_dir, card_file):
 	#else:
 	#	return 0
 
-def generate_output_scan_template_csv(output_csv='colm_output_scan.csv', input_csv='colm_input_scan.csv', fresh_input=True, starting_row=0):
-	"""Write the output csv, with the columns, ready for rows to be added to it"""
-	if fresh_input == True:
-		with open(output_csv, 'w') as file:
-			writer = csv.writer(file)
-			writer.writerow(['MD1', 'MDP', 'MD3', 'delta_MDP', 'delta_MD3', 'allowed_by_LHC', 'allowed_by_DD', 'allowed_by_ID', 'allowed_by_RD'])
-	else:
-		with open(input_csv, 'rw') as input_file, open(output_csv) as output_file:
-			completed_rows = input_file.readlines()[:starting_row]	
-			output_file.writelines(completed_rows)
-	return None
-
-def store_result(input_row,  output_csv=config_dict['output_csv_file'],allowed_dict = {'LHC': 0, 'DD': 1, 'ID': 2, 'RD':3}, **kwargs):
-    """This takes the result of whether the parameter space is allowed or not,
-    and stores it in the csv scan output file. Result parameter input should be a 1 for allowed and 0
-    for not allowed. Search type should be either: 'LHC', 'DD', 'ID', 'RD'
-    """
-    #define the cols to do with if a result is allowed or not, as theyre the ones which could potentially change
-    allowed_cols = input_row[6:]
-    # exact col of allowed_cols depends on search_type, and needs to be changed depending on the result
-    #kwargs is our result and should be a dict, containing the search type and result, eg, {'RD': 0}
-    for key, value in kwargs.items():
-        allowed_cols[allowed_dict[key]] = value
-    #time to add our data
-    with open(output_csv, 'a') as file:
-        writer = csv.writer(file)
-        writer.writerow(input_row[:6] + allowed_cols)
-    return None
-
-
-def LHC_single_parameter_point_search(MD1, MDP, MD3, config_dict):
+def collider_single_point_checker(MD1, MDP, MD3, config_dict):
 	"""This function takes a single parameter point and makes a decision if its allowed by bringing the whole pipeline together:
 		1) Creates batch file
 		2) Creates lhe events (using Calchep)
@@ -129,25 +100,23 @@ def LHC_single_parameter_point_search(MD1, MDP, MD3, config_dict):
 	result = decision_generator(lhe_file, config_dict['checkmate_dir'], config_dict['checkmate_card_file'])
 	return {'LHC': result}
 
-def parameter_space_scan(input_csv_file, output_csv_file, points_in_scan=None):
-	"""This function searches multiple parameter points in the parameter space using the single_parameter_point_search function above,
-	it takes a csv file as an input"""
+def collider_parameter_space_checker(config_dict):
+	"""This function searches multiple parameter points in the parameter space using the collider_single_point_checker function above,
+	it takes the config_dict as the only input. Does not output anything directly but will update the output csv scan and fill it with
+	values of whether each point is allowed or not."""
 	#first lets generate the output csv file
-	generate_output_scan_template_csv(output_csv=output_csv_file)
+	generate_output_scan_template_csv(output_csv= config_dict['output_csv_file'])
 	#now lets loop over the different rows containing the parameter points in our input scan csv
-	for row in tqdm(scan_reader(input_scan_csv=input_csv_file), total=float(points_in_scan)):
+	for row in tqdm(scan_reader(input_scan_csv= config_dict['input_csv_file']), total=float( config_dict['points_in_scan'] )):
 		#define our masses from our input csv row
 		MD1, MDP, MD3 = float(row[1]), float(row[2]), float(row[3])
 		#for this single parameter point, calculate if its allowed or not. Result = 1 or allowed, 0 if not allowed
-		result = single_parameter_point_search(MD1, MDP, MD3)
+		result = collider_single_point_checker(MD1, MDP, MD3, config_dict)
 		#time to store our result
-		store_result(row, result, 'LHC', output_csv_file)
+        store_result(input_row=row, output_csv=config_dict['output_csv_file'], **result)
 	return None
 
 
 if __name__ == '__main__':
-	LHC_single_parameter_point_search(60, 100, 200)
-	#parameter_space_scan(input_csv_file=sys.argv[1],
-						 #output_csv_file=sys.argv[2],
-						 #points_in_scan=sys.argv[3])
+	collider_parameter_space_checker(config_dict)
 
