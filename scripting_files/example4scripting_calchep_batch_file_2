@@ -1,0 +1,59 @@
+##################################
+# Model Info                     #
+##################################
+Model:         FDM-majorana_final
+Model changed: False
+Gauge:         Feynman
+
+###############################################
+#  Parameter Info                             #
+###############################################
+Parameter: MD1 = 61.4531161254
+Parameter: MDP = 106.342859597
+Parameter: MD3 = 202.70937091
+
+###############################################
+#  Process Info                               #
+###############################################
+Process:   p,p->DM1,DM2
+
+
+
+
+Alias: p=u,U,d,D,s,S,c,C,b,B,G
+Alias: DM1 =~o1,~o2,~o3,~1+,~1-
+Alias: DM2 =~o1,~o2,~o3,~1+,~1-
+
+
+##############################################
+#             PDF Info                       #
+# Proton-antiproton parton densities         #
+##############################################
+pdf1:      PDT:cteq6l1(proton)
+pdf2:      PDT:cteq6l1(proton)
+
+###############################################
+#  Momentum Info                              #
+#    in GeV                                   #
+###############################################
+p1:        6500
+p2:        6500
+
+
+###############################################
+#  Events Generation                          #
+###############################################
+Number of events (per run step): 1000
+Filename:                        scripting_events
+NTuple:                          False
+Cleanup:                         False
+
+
+###############################################
+#  Parallelization Info                       #
+###############################################
+Parallelization method	:	local
+Max number of cpus:   2
+sleep time	:	3
+
+

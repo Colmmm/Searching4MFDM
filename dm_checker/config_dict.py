@@ -3,7 +3,7 @@ config_dict = {
     'output_csv_file': '../output_scans/OUTPUT_first_after_git.csv',
     'calchep_dir': '/home/colmsam/MASTERS_project/CalcHEPwork/',
     'fresh_input': True,
-    'calchep_batch_file': 'scripting_batch_file',
+    'calchep_batch_file': 'all_MFDM_processes_4_scripting',
     'calchep_output_events': 'scripting_events',
     'local': True,
     'checkmate_dir': '/home/colmsam/checkmate2/bin/',
