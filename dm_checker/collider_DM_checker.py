@@ -2,7 +2,7 @@ import csv
 from tqdm import tqdm
 import sys
 import subprocess
-from scan_utils import run, scan_reader, generate_output_scan_template_csv
+from scan_utils import run, scan_reader, generate_output_scan_template_csv, store_result
 from config_dict import config_dict
 
 

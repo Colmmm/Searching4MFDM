@@ -4,3 +4,4 @@ rough_notebook_for_colm.ipynb
 *.swo
 .ipynb_checkpoints
 */.ipynb_checkpoints/*
+..gitignore.swp
