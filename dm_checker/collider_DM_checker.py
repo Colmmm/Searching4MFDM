@@ -1,9 +1,8 @@
-import csv
-from tqdm import tqdm
-import sys
-import subprocess
 from scan_utils import run, scan_reader, generate_output_scan_template_csv, store_result
+import csv
+import numpy as np
 from config_dict import config_dict
+from tqdm import tqdm
 
 
 def batch_file_generator(MD1, MDP, MD3, batch_file, calchep_dir, output_events, local=True):
@@ -105,7 +104,7 @@ def collider_parameter_space_checker(config_dict):
 	it takes the config_dict as the only input. Does not output anything directly but will update the output csv scan and fill it with
 	values of whether each point is allowed or not."""
 	#first lets generate the output csv file
-	generate_output_scan_template_csv(output_csv= config_dict['output_csv_file'])
+	generate_output_scan_template_csv(output_csv= config_dict['output_csv_file'], input_csv=config_dict['input_csv_file'], fresh_input=config_dict['fresh_input'], starting_row=config_dict['starting_row'])
 	#now lets loop over the different rows containing the parameter points in our input scan csv
 	for row in tqdm(scan_reader(input_scan_csv= config_dict['input_csv_file']), total=float( config_dict['points_in_scan'] )):
 		#define our masses from our input csv row
@@ -113,7 +112,7 @@ def collider_parameter_space_checker(config_dict):
 		#for this single parameter point, calculate if its allowed or not. Result = 1 or allowed, 0 if not allowed
 		result = collider_single_point_checker(MD1, MDP, MD3, config_dict)
 		#time to store our result
-        store_result(input_row=row, output_csv=config_dict['output_csv_file'], **result)
+		store_result(input_row=row, output_csv=config_dict['output_csv_file'], **result)
 	return None
 
 
