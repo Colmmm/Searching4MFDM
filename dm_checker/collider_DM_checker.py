@@ -91,6 +91,9 @@ def collider_single_point_checker(MD1, MDP, MD3, config_dict):
 		3) Makes a decision on those events (using CHECKmate)
 	"""
 	#print('\n\n\nParameter:')
+	#0.5) calchep doesnt like it when the deltas are exactly the same as we get tan(2_theta) = 1/0, so we have to add a slight offset
+	MDP = MDP + 0.0000001
+	MD3 = MD3 + 0.000000002
 	# 1)create the batch file (note variable batch_file is just the str of the name of the batch file)
 	batch_file = batch_file_generator(MD1, MDP, MD3, config_dict['calchep_batch_file'], config_dict['calchep_dir'], config_dict['calchep_output_events'], config_dict['local'])
 	# 2) Create the lhe files (note variable lhe_file is just the string of the lhe events file name)
