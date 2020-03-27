@@ -18,16 +18,16 @@ def batch_file_generator(MD1, MDP, MD3, batch_file, calchep_dir, output_events, 
 			# read a list of lines into data
 			changes = file.readlines()
 		# Make changes to the parameter info, which starts at line 11, you also have to add \n at end for it to work
-		changes[10] = 'Parameter: MD1 = ' + str(MD1) + '\n' 
+		changes[10] = 'Parameter: MD1 = ' + str(MD1) + '	#line 11' +  '\n' 
 		changes[11] = 'Parameter: MDP = ' + str(MDP) + '\n'  
 		changes[12] = 'Parameter: MD3 = ' + str(MD3) + '\n'
 		#set name for outgoing events file name
-		changes[46] = 'Filename:                        ' + output_events + '\n'
+		changes[46] = 'Filename:                        ' + output_events + '		#line 47' +  '\n'
 		#if being ran not locally, ie, local = False then it is assumed that we can use a lot more cpus
 		if local==False:
-			changes[55] = 'Max number of cpus:   16' + '\n'
+			changes[55] = 'Max number of cpus:   16' + '	#line 56' +  '\n'
 		else:
-			changes[55] = 'Max number of cpus:   2' + '\n'
+			changes[55] = 'Max number of cpus:   2' + '	#line 56' +  '\n'
 		# and write everything back
 		with open(path2file, 'w') as file:
 			file.writelines(changes)
@@ -50,7 +50,7 @@ def events_generator(batch_file, calchep_dir, output_events, checkmate_dir):
 	#next lets run the batch file and generate the lhe events
 	run(['./calchep_batch ' + batch_file], cwd=calchep_dir, shell=True)
 	#now we unzip the lhe files
-	run(['gunzip -k '+ lhe_file + '.gz'], cwd=calchep_results_dir, shell=True)
+	run(['gunzip '+ lhe_file + '.gz'], cwd=calchep_results_dir, shell=True)
 	#now we copy over the lhe files to the checkmate directory
 	run(['cp '+ lhe_file + ' ' + checkmate_dir], cwd=calchep_results_dir, shell=True)
 	return lhe_file
