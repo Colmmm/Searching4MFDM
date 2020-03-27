@@ -5,7 +5,7 @@ from config_dict import config_dict
 from tqdm import tqdm
 
 
-def batch_file_generator(MD1, MDP, MD3, batch_file, calchep_dir, output_events, local=True):
+def batch_file_generator(MD1, MDP, MD3, batch_file, calchep_dir, output_events, num_events, local=True):
 	"""This edits the calchep batchfile (batch_file), ie changing for a specific parameter combo of MD1, MDP, MD3,
 	ands about it. You need to specify the parameter values you want, the batch_file which is already created
 	and the calchep directory where the batch file will be ran. The batch_file name is outputted which is kind of
@@ -18,16 +18,18 @@ def batch_file_generator(MD1, MDP, MD3, batch_file, calchep_dir, output_events, 
 			# read a list of lines into data
 			changes = file.readlines()
 		# Make changes to the parameter info, which starts at line 11, you also have to add \n at end for it to work
-		changes[10] = 'Parameter: MD1 = ' + str(MD1) + '\n' 
-		changes[11] = 'Parameter: MDP = ' + str(MDP) + '\n'  
-		changes[12] = 'Parameter: MD3 = ' + str(MD3) + '\n'
+		changes[10] = 'Parameter: MD1 = ' + str(MD1) + '		#line 11' + '\n'
+		changes[11] = 'Parameter: MDP = ' + str(MDP) + '		#line 12' + '\n'
+		changes[12] = 'Parameter: MD3 = ' + str(MD3) + '		#line 13' + '\n'
+		#lets set the number of different events to be generated
+		changes[45] = 'Number of events (per run step):' + str(num_events) + '		#line 46' + '\n'
 		#set name for outgoing events file name
-		changes[46] = 'Filename:                        ' + output_events + '\n'
+		changes[46] = 'Filename:                        ' + output_events + '		#line 47' +'\n'
 		#if being ran not locally, ie, local = False then it is assumed that we can use a lot more cpus
 		if local==False:
-			changes[55] = 'Max number of cpus:   16' + '\n'
+			changes[55] = 'Max number of cpus:   16' + '		#line 56'+'\n'
 		else:
-			changes[55] = 'Max number of cpus:   2' + '\n'
+			changes[55] = 'Max number of cpus:   2' + '		#line 56' + '\n'
 		# and write everything back
 		with open(path2file, 'w') as file:
 			file.writelines(changes)
@@ -76,13 +78,17 @@ def decision_generator(lhe_file, checkmate_dir, card_file):
 	#time to collect and output result from this result_dir
 	with open(result_dir, 'r') as file:
 		# just way data is formatted, the result is given by below line
-		#result = file.readlines()[1].split()[-1]
-		r_value = file.readlines()[2].split()[-1]
-		return r_value
-	#if result == 'Allowed':
-	#	return 1
-	#else:
-	#	return 0
+		file = file.readlines()
+		r_value = float(file[2].split()[-1])
+		analysis = file[3].split()[-1]
+		SR = file[4].split()[-1]
+		#result is if allowed or not
+		if r_value >1:
+			result = 0
+		else:
+			result = 1
+	return {'r_value': r_value, 'analysis': analysis, 'SR': SR, 'LHC': result}
+	
 
 def collider_single_point_checker(MD1, MDP, MD3, config_dict):
 	"""This function takes a single parameter point and makes a decision if its allowed by bringing the whole pipeline together:
@@ -95,12 +101,12 @@ def collider_single_point_checker(MD1, MDP, MD3, config_dict):
 	MDP = MDP + 0.0000001
 	MD3 = MD3 + 0.000000002
 	# 1)create the batch file (note variable batch_file is just the str of the name of the batch file)
-	batch_file = batch_file_generator(MD1, MDP, MD3, config_dict['calchep_batch_file'], config_dict['calchep_dir'], config_dict['calchep_output_events'], config_dict['local'])
+	batch_file = batch_file_generator(MD1, MDP, MD3, config_dict['calchep_batch_file'], config_dict['calchep_dir'], config_dict['calchep_output_events'], config_dict['num_events'], config_dict['local'])
 	# 2) Create the lhe files (note variable lhe_file is just the string of the lhe events file name)
 	lhe_file = events_generator(config_dict['calchep_batch_file'], config_dict['calchep_dir'], config_dict['calchep_output_events'], config_dict['checkmate_dir'])
 	# 3) Make a decision on those events, where result is 1 for being allowed, 0 for not allowed
 	result = decision_generator(lhe_file, config_dict['checkmate_dir'], config_dict['checkmate_card_file'])
-	return {'LHC': result}
+	return result
 
 def collider_parameter_space_checker(config_dict):
 	"""This function searches multiple parameter points in the parameter space using the collider_single_point_checker function above,

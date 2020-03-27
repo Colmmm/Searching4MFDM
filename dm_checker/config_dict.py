@@ -2,6 +2,7 @@ config_dict = {
     'input_csv_file': '../input_scans/Test_point_against_Arran_input.csv',
     'output_csv_file': '../output_scans/Test_point_against_Arran_output.csv',
     'calchep_dir': '/home/colmsam/MASTERS_project/CalcHEPwork/',
+    'num_events': 1,
     'fresh_input': True,
     'calchep_batch_file': 'all_MFDM_processes_4_scripting',
     'calchep_output_events': 'scripting_events',
