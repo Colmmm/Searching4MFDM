@@ -52,7 +52,7 @@ def events_generator(batch_file, calchep_dir, output_events, checkmate_dir):
 	#next lets run the batch file and generate the lhe events
 	run(['./calchep_batch ' + batch_file], cwd=calchep_dir, shell=True)
 	#now we unzip the lhe files
-	run(['gunzip -k '+ lhe_file + '.gz'], cwd=calchep_results_dir, shell=True)
+	run(['gunzip '+ lhe_file + '.gz'], cwd=calchep_results_dir, shell=True)
 	#now we copy over the lhe files to the checkmate directory
 	run(['cp '+ lhe_file + ' ' + checkmate_dir], cwd=calchep_results_dir, shell=True)
 	return lhe_file
