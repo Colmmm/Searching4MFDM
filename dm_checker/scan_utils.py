@@ -17,16 +17,16 @@ def grid_scan_generator(MD1_range, delta_MDP_range, delta_MD3_range, output_file
     delta_MD3 = np.arange(delta_MD3_range[0], delta_MD3_range[1], (delta_MD3_range[1]- delta_MD3_range[0])/delta_MD3_range[2])
     #create a list of all the combinations
     grid_scan = list(itertools.product(*[MD1, delta_MDP, delta_MD3]))
-    #in our grid scan we still want 6 extra columns, which we add as nan values for now
-    grid_scan = [row + tuple(np.full(6, np.nan)) for row in grid_scan]
+    #in our grid scan we still want 9 extra columns, which we add as nan values for now
+    grid_scan = [row + tuple(np.full(9, np.nan)) for row in grid_scan]
     #need to turn it into a df now
-    grid_scan = pd.DataFrame(data=grid_scan, columns = ['MD1', 'delta_MDP', 'delta_MD3', 'MDP', 'MD3', 'allowed_by_LHC', 'allowed_by_DD', 'allowed_by_ID', 'allowed_by_RD'])
+    grid_scan = pd.DataFrame(data=grid_scan, columns = ['MD1', 'delta_MDP', 'delta_MD3', 'MDP', 'MD3', 'allowed_by_LHC', 'allowed_by_DD', 'allowed_by_ID', 'allowed_by_RD', 'r_value', 'analysis', 'SR'])
     #one of the extra 6 columns are the delta mass values which we can add now
     grid_scan['MDP'] = grid_scan.apply(lambda x: x.MD1 + x.delta_MDP, axis=1)
     grid_scan['MD3'] = grid_scan.apply(lambda x: x.MDP + x.delta_MD3, axis=1)
     #if input variable mass_hierarchy=True then we get rid of combinations that disobey mass hierarchy MD1<MDP<MD3
     #just rearanging the columns
-    grid_scan = grid_scan.loc[:, ['MD1', 'MDP', 'MD3', 'delta_MDP', 'delta_MD3', 'allowed_by_LHC', 'allowed_by_DD', 'allowed_by_ID', 'allowed_by_RD']]
+    grid_scan = grid_scan.loc[:, ['MD1', 'MDP', 'MD3', 'delta_MDP', 'delta_MD3', 'r_value', 'analysis', 'SR','allowed_by_LHC', 'allowed_by_DD', 'allowed_by_ID', 'allowed_by_RD']]
     if mass_hierarchy==True:
         grid_scan = grid_scan.query('MD1<MDP<MD3').query('MD1!=0')
         grid_scan.index = range(grid_scan.shape[0])
@@ -47,14 +47,15 @@ def random_scan_generator(MD1_range, MDP_range, MD3_range, output_file_name='col
     MD3 = MD3_range[0] + (MD3_range[1]-MD3_range[0])*rand(MD3_range[2])
     #create a list of all the combinations
     grid_scan = list(itertools.product(*[MD1, MDP, MD3]))
-    #in our grid scan we still want 6 extra columns, which we add as nan values for now
-    grid_scan = [row + tuple(np.full(6, np.nan)) for row in grid_scan]
+    #in our grid scan we still want 9 extra columns, which we add as nan values for now
+    grid_scan = [row + tuple(np.full(9, np.nan)) for row in grid_scan]
     #need to turn it into a df now
-    grid_scan = pd.DataFrame(data=grid_scan, columns = ['MD1', 'MDP', 'MD3', 'delta_MDP', 'delta_MD3', 'allowed_by_LHC', 'allowed_by_DD', 'allowed_by_ID', 'allowed_by_RD'])
+    grid_scan = pd.DataFrame(data=grid_scan, columns = ['MD1', 'delta_MDP', 'delta_MD3', 'MDP', 'MD3', 'allowed_by_LHC', 'allowed_by_DD', 'allowed_by_ID', 'allowed_by_RD', 'r_value', 'analysis', 'SR'])
     #one of the extra 6 columns are the delta mass values which we can add now
     grid_scan['delta_MDP'] = grid_scan.apply(lambda x: x.MDP - x.MD1, axis=1)
     grid_scan['delta_MD3'] = grid_scan.apply(lambda x: x.MD3 - x.MD1, axis=1)
     #if input variable mass_hierarchy=True then we get rid of combinations that disobey mass hierarchy MD1<MDP<MD3
+    grid_scan = grid_scan.loc[:, ['MD1', 'MDP', 'MD3', 'delta_MDP', 'delta_MD3', 'r_value', 'analysis', 'SR','allowed_by_LHC', 'allowed_by_DD', 'allowed_by_ID', 'allowed_by_RD']]
     if mass_hierarchy==True:
         grid_scan = grid_scan.query('MD1<MDP<MD3')
         grid_scan.index = range(grid_scan.shape[0])
@@ -77,17 +78,18 @@ def generate_output_scan_template_csv(output_csv='colm_output_scan.csv', input_c
     if fresh_input == True:
         with open(output_csv, 'w') as file:
             writer = csv.writer(file)
-            writer.writerow(['MD1', 'MDP', 'MD3', 'delta_MDP', 'delta_MD3', 'allowed_by_LHC', 'allowed_by_DD', 'allowed_by_ID', 'allowed_by_RD'])
+            writer.writerow(['MD1', 'delta_MDP', 'delta_MD3', 'MDP', 'MD3', 'allowed_by_LHC', 'allowed_by_DD', 'allowed_by_ID', 'allowed_by_RD', 'r_value', 'analysis', 'SR'])
     else:
         with open(input_csv, 'rw') as input_file, open(output_csv, 'w') as output_file:
             completed_rows = input_file.readlines()[:starting_row]  
             output_file.writelines(completed_rows)
     return None
 
-def store_result(input_row,  output_csv, allowed_dict = {'LHC': 0, 'DD': 1, 'ID': 2, 'RD':3}, **kwargs):
-    """This takes the result of whether the parameter space is allowed or not,
-    and stores it in the csv scan output file. Result parameter input should be a 1 for allowed and 0
-    for not allowed. Search type should be either: 'LHC', 'DD', 'ID', 'RD'
+def store_result(input_row,  output_csv, allowed_dict = {'r_value':0,'analysis':1,'SR':2,'LHC': 3, 'DD': 4, 'ID': 5, 'RD':6}, **kwargs):
+    """This takes function takes in a result the **kwargs, which is a dict, and would look something like {'DD': 0, 'ID': 1, 'RD':0} from non colliders,
+    and {'r_value':1.6842, 'analysis':'cms_sus_16_025' , 'SR':'SR2_stop_1low_pt_1', 'LHC': 0}, and allowed_dict essentially tells where to 
+    put each value in the df. This function thus stores a result (values for allowed or not + extra) in the output csv, we need input row to also
+    store the masses in the output file.
     """
     #define the cols to do with if a result is allowed or not, as theyre the ones which could potentially change
     allowed_cols = input_row[6:]

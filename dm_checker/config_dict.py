@@ -2,6 +2,7 @@ config_dict = {
     'input_csv_file': '../input_scans/First_on_iridis_input.csv',
     'output_csv_file': '../output_scans/First_on_iridis_output.csv',
     'calchep_dir': '/lyceum/cwks1g16/CalchepWorkDir/',
+    'num_events': 150000,
     'fresh_input': True,
     'calchep_batch_file': 'all_processes_bathfile_4_scripting',
     'calchep_output_events': 'scripting_events',
