@@ -15,7 +15,7 @@ config_dict = {
     'micromegas_output_file': 'micromegas_output_parameters.csv',
 
     'starting_row': 0,
-    'points_in_scan': 1,
+    'points_in_scan': 100,
     'mode': 2
     }
 
