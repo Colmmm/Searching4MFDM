@@ -12,9 +12,10 @@ def XENON1T_limit(DM_mass):
     #transform to log space
     x = np.log10(DM_mass)
     #define the parameters from our fit to the XENON data
-    a0, a1, a2, a3, a4, a5, a6, a7 = [-6.12758156e+01, -3.49707877e+01,  6.86347267e+00,  1.15941164e+00,
-       -6.77983966e-01,  1.11362682e-01, -8.22699735e-03,  2.33673270e-04]
-    log_sigma_max = a0 + a1*x + a2*x**2 + a3*x**3 + a4*x**4 + a5*x**5 +a6*x**6 +a7*x**7
+    a0, a1, a2, a3, a4, a5, a6, a7 = [-21.55627933, -62.06737775, 73.75557438, -58.61476515,
+                                      32.87144973, -11.8289614, 2.3645403, -0.19680836]
+    #the 36 is used to convert the units from fb^2 to cm^2
+    log_sigma_max = 36 + a0 + a1*x + a2*x**2 + a3*x**3 + a4*x**4 + a5*x**5 +a6*x**6 +a7*x**7
     #return the unlogged sigma_max now
     return np.power(10, log_sigma_max)
 
@@ -26,8 +27,8 @@ def CTA_limit(DM_mass):
     #transform to log space
     x = np.log10(DM_mass)
     #define the parameters from our fit to the XENON data
-    a0, a1, a2, a3, a4, a5, a6, a7 = [-5.55723108e+01,  1.53306173e+01, -8.83774457e+00,  1.82880636e+00,
-       -1.64487235e-01,  3.94884412e-03,  2.95702006e-04, -1.47865839e-05]
+    a0, a1, a2, a3, a4, a5, a6, a7 = [-2.38134785e+01,  1.45844585e+01, -1.96192780e+01,  9.30546670e+00,
+                                      -1.88469853e+00,  8.79898628e-02,  2.14885747e-02, -2.30503044e-03]
     log_sigma_max = a0 + a1*x + a2*x**2 + a3*x**3 + a4*x**4 + a5*x**5 +a6*x**6 +a7*x**7
     #return the unlogged sigma_max now
     return np.power(10, log_sigma_max)
