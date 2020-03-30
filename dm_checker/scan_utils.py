@@ -5,28 +5,37 @@ import csv
 from numpy.random import rand
 import subprocess
 
-def grid_scan_generator(MD1_range, delta_MDP_range, delta_MD3_range, output_file_name='colm_input_scan.csv', mass_hierarchy=False):
+def grid_scan_generator(MDX_range, delta_MDP_range, delta_MD3_range, MDX='MD3', output_file_name='colm_input_scan.csv', mass_hierarchy=False):
     """This is the GRID SCAN GENERATOR. It creates a grid scan, which takes the desired ranges of the masses MD1,MDP,MD3 as inputs,
     in the format of [start_value,end_value,step], eg, MD1_range = [0,1000,100]. This function will then create all the possible
     combinations of MD1,MDP,MD3 allowed by the mass hierarchy (if mass_hierarch=True) and will output these combinations as a panadas
     df as well as saving it as a csv. The dataframe will also have columns for the delta mass values as well as 4 columns for each
     search type indicating if its allowed or not"""
     #define the range of values for MD1, MDP, MD3
-    MD1 = np.arange(MD1_range[0], MD1_range[1], (MD1_range[1]- MD1_range[0])/MD1_range[2])
-    delta_MDP = np.arange(delta_MDP_range[0], delta_MDP_range[1], (delta_MDP_range[1]- delta_MDP_range[0])/delta_MDP_range[2])
-    delta_MD3 = np.arange(delta_MD3_range[0], delta_MD3_range[1], (delta_MD3_range[1]- delta_MD3_range[0])/delta_MD3_range[2])
+    MDXs = np.arange(MDX_range[0], MDX_range[1], (MDX_range[1]- MDX_range[0])/MDX_range[2])
+    delta_MDPs = np.arange(delta_MDP_range[0], delta_MDP_range[1], (delta_MDP_range[1]- delta_MDP_range[0])/delta_MDP_range[2])
+    delta_MD3s = np.arange(delta_MD3_range[0], delta_MD3_range[1], (delta_MD3_range[1]- delta_MD3_range[0])/delta_MD3_range[2])
     #create a list of all the combinations
-    grid_scan = list(itertools.product(*[MD1, delta_MDP, delta_MD3]))
+    grid_scan = list(itertools.product(*[MDXs, delta_MDPs, delta_MD3s]))
     #in our grid scan we still want 9 extra columns, which we add as nan values for now
     grid_scan = [row + tuple(np.full(9, np.nan)) for row in grid_scan]
-    #need to turn it into a df now
-    grid_scan = pd.DataFrame(data=grid_scan, columns = ['MD1', 'delta_MDP', 'delta_MD3', 'MDP', 'MD3', 'allowed_by_LHC', 'allowed_by_DD', 'allowed_by_ID', 'allowed_by_RD', 'r_value', 'analysis', 'SR'])
-    #one of the extra 6 columns are the delta mass values which we can add now
-    grid_scan['MDP'] = grid_scan.apply(lambda x: x.MD1 + x.delta_MDP, axis=1)
-    grid_scan['MD3'] = grid_scan.apply(lambda x: x.MDP + x.delta_MD3, axis=1)
+    if MDX == 'MD3':
+        #need to turn it into a df now
+        grid_scan = pd.DataFrame(data=grid_scan, columns = ['MD3', 'delta_MDP', 'delta_MD3', 'MDP', 'MD1', 'allowed_by_LHC', 'allowed_by_DD', 'allowed_by_ID', 'allowed_by_RD', 'r_value', 'analysis', 'SR'])
+        #we can now define the actual masses using our MD1 and the delta values
+        grid_scan['MDP'] = grid_scan.apply(lambda x: x.MD3 - x.delta_MD3, axis=1)
+        grid_scan['MD1'] = grid_scan.apply(lambda x: x.MDP - x.delta_MDP, axis=1)
+        #just rearanging the columns
+        grid_scan = grid_scan.loc[:, ['MD3', 'MDP', 'MD1', 'delta_MD3', 'delta_MDP', 'r_value', 'analysis', 'SR','allowed_by_LHC', 'allowed_by_DD', 'allowed_by_ID', 'allowed_by_RD']]
+    elif MDX == 'MD1':
+        grid_scan = pd.DataFrame(data=grid_scan, columns = ['MD1', 'delta_MDP', 'delta_MD3', 'MDP', 'MD3', 'allowed_by_LHC', 'allowed_by_DD', 'allowed_by_ID', 'allowed_by_RD', 'r_value', 'analysis', 'SR'])
+        #we can now define the actual masses using our MD1 and the delta values
+        grid_scan['MDP'] = grid_scan.apply(lambda x: x.MD1 + x.delta_MDP, axis=1)
+        grid_scan['MD3'] = grid_scan.apply(lambda x: x.MDP + x.delta_MD3, axis=1)
+        grid_scan = grid_scan.loc[:, ['MD1', 'MDP', 'MD3', 'delta_MDP', 'delta_MD3', 'r_value', 'analysis', 'SR','allowed_by_LHC', 'allowed_by_DD', 'allowed_by_ID', 'allowed_by_RD']]
+    else:
+        print('MDX needs to be either "MD3" or "MD1"!!!')
     #if input variable mass_hierarchy=True then we get rid of combinations that disobey mass hierarchy MD1<MDP<MD3
-    #just rearanging the columns
-    grid_scan = grid_scan.loc[:, ['MD1', 'MDP', 'MD3', 'delta_MDP', 'delta_MD3', 'r_value', 'analysis', 'SR','allowed_by_LHC', 'allowed_by_DD', 'allowed_by_ID', 'allowed_by_RD']]
     if mass_hierarchy==True:
         grid_scan = grid_scan.query('MD1<MDP<MD3').query('MD1!=0')
         grid_scan.index = range(grid_scan.shape[0])
@@ -34,7 +43,7 @@ def grid_scan_generator(MD1_range, delta_MDP_range, delta_MD3_range, output_file
     grid_scan.to_csv(output_file_name)
     return grid_scan
 
-def random_scan_generator(MD1_range, MDP_range, MD3_range, output_file_name='colm_input_scan.csv', mass_hierarchy=True):
+def random_scan_generator(MDX_range, delta_MDP_range, delta_MD3_range, MDX='MD3', output_file_name='colm_input_scan.csv', mass_hierarchy=True):
     """This is the RANDOM SCAN GENERATOR. It creates a random scan, which takes the desired ranges of the masses MD1,MDP,MD3 as inputs,
     in the format of [max_value,min_value,population_size], eg, MD1_range = [50,1000,100] will give you 100 MD1 values, from 50 to 1000.
     This function will then create all the possible combinations of MD1,MDP,MD3 allowed by the mass hierarchy (if mass_hierarch=True) 
@@ -42,20 +51,28 @@ def random_scan_generator(MD1_range, MDP_range, MD3_range, output_file_name='col
     vary due to the mass hierarchy) The dataframe will also have columns for the  delta mass values as well as 4 columns for each search
     type indicating if its allowed or not"""
     #define the range of values for MD1, MDP, MD3
-    MD1 = MD1_range[0] + (MD1_range[1]-MD1_range[0])*rand(MD1_range[2])
-    MDP = MDP_range[0] + (MDP_range[1]-MDP_range[0])*rand(MDP_range[2])
-    MD3 = MD3_range[0] + (MD3_range[1]-MD3_range[0])*rand(MD3_range[2])
+    MDXs = MDX_range[0] + (MDX_range[1]-MDX_range[0])*rand(MDX_range[2])
+    delta_MDPs = delta_MDP_range[0] + (delta_MDP_range[1]-delta_MDP_range[0])*rand(delta_MDP_range[2])
+    delta_MD3s = delta_MD3_range[0] + (delta_MD3_range[1]-delta_MD3_range[0])*rand(delta_MD3_range[2])
     #create a list of all the combinations
-    grid_scan = list(itertools.product(*[MD1, MDP, MD3]))
+    grid_scan = list(itertools.product(*[MDXs, delta_MDPs, delta_MD3s]))
     #in our grid scan we still want 9 extra columns, which we add as nan values for now
     grid_scan = [row + tuple(np.full(9, np.nan)) for row in grid_scan]
-    #need to turn it into a df now
-    grid_scan = pd.DataFrame(data=grid_scan, columns = ['MD1', 'delta_MDP', 'delta_MD3', 'MDP', 'MD3', 'allowed_by_LHC', 'allowed_by_DD', 'allowed_by_ID', 'allowed_by_RD', 'r_value', 'analysis', 'SR'])
-    #one of the extra 6 columns are the delta mass values which we can add now
-    grid_scan['delta_MDP'] = grid_scan.apply(lambda x: x.MDP - x.MD1, axis=1)
-    grid_scan['delta_MD3'] = grid_scan.apply(lambda x: x.MD3 - x.MD1, axis=1)
-    #if input variable mass_hierarchy=True then we get rid of combinations that disobey mass hierarchy MD1<MDP<MD3
-    grid_scan = grid_scan.loc[:, ['MD1', 'MDP', 'MD3', 'delta_MDP', 'delta_MD3', 'r_value', 'analysis', 'SR','allowed_by_LHC', 'allowed_by_DD', 'allowed_by_ID', 'allowed_by_RD']]
+    if MDX == 'MD3':
+        #need to turn it into a df now
+        grid_scan = pd.DataFrame(data=grid_scan, columns = ['MD3', 'delta_MDP', 'delta_MD3', 'MDP', 'MD1', 'allowed_by_LHC', 'allowed_by_DD', 'allowed_by_ID', 'allowed_by_RD', 'r_value', 'analysis', 'SR'])
+        #we can now define the actual masses using our MD1 and the delta values
+        grid_scan['MDP'] = grid_scan.apply(lambda x: x.MD3 - x.delta_MD3, axis=1)
+        grid_scan['MD1'] = grid_scan.apply(lambda x: x.MDP - x.delta_MDP, axis=1)
+        grid_scan = grid_scan.loc[:, ['MD3', 'MDP', 'MD3', 'delta_MD3', 'delta_MDP', 'r_value', 'analysis', 'SR','allowed_by_LHC', 'allowed_by_DD', 'allowed_by_ID', 'allowed_by_RD']]
+    elif MDX == 'MD1':
+        grid_scan = pd.DataFrame(data=grid_scan, columns = ['MD1', 'delta_MDP', 'delta_MD3', 'MDP', 'MD3', 'allowed_by_LHC', 'allowed_by_DD', 'allowed_by_ID', 'allowed_by_RD', 'r_value', 'analysis', 'SR'])
+        #we can now define the actual masses using our MD1 and the delta values
+        grid_scan['MDP'] = grid_scan.apply(lambda x: x.MD1 + x.delta_MDP, axis=1)
+        grid_scan['MD3'] = grid_scan.apply(lambda x: x.MDP + x.delta_MD3, axis=1)
+        grid_scan = grid_scan.loc[:, ['MD1', 'MDP', 'MD3', 'delta_MDP', 'delta_MD3', 'r_value', 'analysis', 'SR','allowed_by_LHC', 'allowed_by_DD', 'allowed_by_ID', 'allowed_by_RD']]
+    else:
+        print('MDX needs to be either "MD3" or "MD1"!!!')
     if mass_hierarchy==True:
         grid_scan = grid_scan.query('MD1<MDP<MD3')
         grid_scan.index = range(grid_scan.shape[0])
