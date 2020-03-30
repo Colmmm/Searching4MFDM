@@ -26,3 +26,38 @@
 5. An already compiled **c_file** also in the **micromegas_dis** (MFDM dir)
 
 ### Examples of these formentioned scripting files can be found in the scripting sub directory
+
+
+# HOW TO DOWNLOAD CHECKMATE
+
+# 1) GET THE PROPER MINICONDA ENVIRONMENT
+
+## 1a) If you don't already have miniconda then download it via:
+wget -nv http://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh
+bash miniconda.sh -b -p $HOME/miniconda
+source $HOME/miniconda/etc/profile.d/conda.sh # Add to bashrc or similar or else you will have to run this everytime you wanna use your env
+## 1b) Create the conda env we will need
+conda create -n checkmate_env root pythia8 hepmc2 pandas numpy python=2 scipy tqdm -c conda-forge
+
+# Now lets download the rest of the stuff, assuming youre on iridis, lets setup this pipeline in your scatch dir, so run (but for your username):
+cd /scratch/cwks1g16
+
+# 2) Download Delphes
+git clone https://github.com/delphes/delphes.git
+cd delphes
+./configure
+make
+
+# 3) Download Madgraph
+wget https://launchpad.net/mg5amcnlo/2.0/2.7.x/+download/MG5_aMC_v2.7.2.tar.gz
+tar -xzf  MG5_aMC_v2.7.2.tar.gz
+
+# 4) Download Checkmate
+wget https://checkmate.hepforge.org/downloads?f=CheckMATE-Current.tar.gz
+tar -xzf CheckMATE-Current.tar.gz
+cd CheckMATE-Current
+autoconf
+./configure --with-rootsys=/lyceum/cwks1g16/miniconda/envs/checkmate_env --with-delphes=/scratch/cwks1g16/delphes --with-pythia=/lyceum/cwks1g16/miniconda/envs/checkmate_env --with-hepmc=/lyceum/cwks1g16/miniconda/envs/checkmate_env --with-madgraph=/scratch/cwks1g16/MG5_aMC_v2.7.2
+make
+
+# 5) Getting my pipeline
