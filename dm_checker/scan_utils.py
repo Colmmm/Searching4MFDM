@@ -5,7 +5,7 @@ import csv
 from numpy.random import rand
 import subprocess
 
-def grid_scan_generator(MDX_range, delta_MDP_range, delta_MD3_range, MDX='MD3', output_file_name='colm_input_scan.csv', mass_hierarchy=False):
+def grid_scan_generator(MDX_range, delta_MDP_range, delta_MD3_range, MDX='MD3', output_file_name='colm_input_scan.csv', apply_mass_rules=True):
     """This is the GRID SCAN GENERATOR. It creates a grid scan, which takes the desired ranges of the masses MD1,MDP,MD3 as inputs,
     in the format of [start_value,end_value,step], eg, MD1_range = [0,1000,100]. This function will then create all the possible
     combinations of MD1,MDP,MD3 allowed by the mass hierarchy (if mass_hierarch=True) and will output these combinations as a panadas
@@ -32,18 +32,18 @@ def grid_scan_generator(MDX_range, delta_MDP_range, delta_MD3_range, MDX='MD3', 
         #we can now define the actual masses using our MD1 and the delta values
         grid_scan['MDP'] = grid_scan.apply(lambda x: x.MD1 + x.delta_MDP, axis=1)
         grid_scan['MD3'] = grid_scan.apply(lambda x: x.MDP + x.delta_MD3, axis=1)
-        grid_scan = grid_scan.loc[:, ['MD1', 'MDP', 'MD3', 'delta_MDP', 'delta_MD3', 'r_value', 'analysis', 'SR','allowed_by_LHC', 'allowed_by_DD', 'allowed_by_ID', 'allowed_by_RD']]
+        grid_scan = grid_scan.loc[:, ['MD3', 'MDP', 'MD1', 'delta_MD3', 'delta_MDP', 'r_value', 'analysis', 'SR','allowed_by_LHC', 'allowed_by_DD', 'allowed_by_ID', 'allowed_by_RD']]
     else:
         print('MDX needs to be either "MD3" or "MD1"!!!')
     #if input variable mass_hierarchy=True then we get rid of combinations that disobey mass hierarchy MD1<MDP<MD3
-    if mass_hierarchy==True:
-        grid_scan = grid_scan.query('MD1<MDP<MD3').query('MD1!=0')
+    if apply_mass_rules==True:
+        grid_scan = grid_scan.query('MD1<MDP<MD3').query('MD1>0')
         grid_scan.index = range(grid_scan.shape[0])
     #export grid scan as a csv
     grid_scan.to_csv(output_file_name)
     return grid_scan
 
-def random_scan_generator(MDX_range, delta_MDP_range, delta_MD3_range, MDX='MD3', output_file_name='colm_input_scan.csv', mass_hierarchy=True):
+def random_scan_generator(MDX_range, delta_MDP_range, delta_MD3_range, MDX='MD3', output_file_name='colm_input_scan.csv', apply_mass_rules=True):
     """This is the RANDOM SCAN GENERATOR. It creates a random scan, which takes the desired ranges of the masses MD1,MDP,MD3 as inputs,
     in the format of [max_value,min_value,population_size], eg, MD1_range = [50,1000,100] will give you 100 MD1 values, from 50 to 1000.
     This function will then create all the possible combinations of MD1,MDP,MD3 allowed by the mass hierarchy (if mass_hierarch=True) 
@@ -64,17 +64,17 @@ def random_scan_generator(MDX_range, delta_MDP_range, delta_MD3_range, MDX='MD3'
         #we can now define the actual masses using our MD1 and the delta values
         grid_scan['MDP'] = grid_scan.apply(lambda x: x.MD3 - x.delta_MD3, axis=1)
         grid_scan['MD1'] = grid_scan.apply(lambda x: x.MDP - x.delta_MDP, axis=1)
-        grid_scan = grid_scan.loc[:, ['MD3', 'MDP', 'MD3', 'delta_MD3', 'delta_MDP', 'r_value', 'analysis', 'SR','allowed_by_LHC', 'allowed_by_DD', 'allowed_by_ID', 'allowed_by_RD']]
+        grid_scan = grid_scan.loc[:, ['MD3', 'MDP', 'MD1', 'delta_MD3', 'delta_MDP', 'r_value', 'analysis', 'SR','allowed_by_LHC', 'allowed_by_DD', 'allowed_by_ID', 'allowed_by_RD']]
     elif MDX == 'MD1':
         grid_scan = pd.DataFrame(data=grid_scan, columns = ['MD1', 'delta_MDP', 'delta_MD3', 'MDP', 'MD3', 'allowed_by_LHC', 'allowed_by_DD', 'allowed_by_ID', 'allowed_by_RD', 'r_value', 'analysis', 'SR'])
         #we can now define the actual masses using our MD1 and the delta values
         grid_scan['MDP'] = grid_scan.apply(lambda x: x.MD1 + x.delta_MDP, axis=1)
         grid_scan['MD3'] = grid_scan.apply(lambda x: x.MDP + x.delta_MD3, axis=1)
-        grid_scan = grid_scan.loc[:, ['MD1', 'MDP', 'MD3', 'delta_MDP', 'delta_MD3', 'r_value', 'analysis', 'SR','allowed_by_LHC', 'allowed_by_DD', 'allowed_by_ID', 'allowed_by_RD']]
+        grid_scan = grid_scan.loc[:, ['MD3', 'MDP', 'MD1', 'delta_MD3', 'delta_MDP', 'r_value', 'analysis', 'SR','allowed_by_LHC', 'allowed_by_DD', 'allowed_by_ID', 'allowed_by_RD']]
     else:
         print('MDX needs to be either "MD3" or "MD1"!!!')
-    if mass_hierarchy==True:
-        grid_scan = grid_scan.query('MD1<MDP<MD3')
+    if apply_mass_rules==True:
+        grid_scan = grid_scan.query('MD1<MDP<MD3').query('MD1>0')
         grid_scan.index = range(grid_scan.shape[0])
     #export grid scan as a csv
     grid_scan.to_csv(output_file_name)
@@ -95,7 +95,7 @@ def generate_output_scan_template_csv(output_csv='colm_output_scan.csv', input_c
     if fresh_input == True:
         with open(output_csv, 'w') as file:
             writer = csv.writer(file)
-            writer.writerow(['MD1', 'delta_MDP', 'delta_MD3', 'MDP', 'MD3', 'allowed_by_LHC', 'allowed_by_DD', 'allowed_by_ID', 'allowed_by_RD', 'r_value', 'analysis', 'SR'])
+            writer.writerow(['MD3', 'MDP', 'MD1', 'delta_MD3', 'delta_MDP', 'r_value', 'analysis', 'SR','allowed_by_LHC', 'allowed_by_DD', 'allowed_by_ID', 'allowed_by_RD'])
     else:
         with open(input_csv, 'rw') as input_file, open(output_csv, 'w') as output_file:
             completed_rows = input_file.readlines()[:starting_row]  
