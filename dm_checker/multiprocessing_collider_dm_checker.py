@@ -33,7 +33,7 @@ def batch_file_generator(idx, MD1, MDP, MD3, batch_file, calchep_dir, output_eve
         if local==False:
             changes[55] = 'Max number of cpus:   16' + '        #line 56'+'\n'
         else:
-            changes[55] = 'Max number of cpus:   2' + '     #line 56' + '\n'
+            changes[55] = 'Max number of cpus:   4' + '     #line 56' + '\n'
         # and write everything back
         with open(path2file, 'w') as file:
             file.writelines(changes)
@@ -64,37 +64,6 @@ def events_generator(batch_file, calchep_dir, output_events, checkmate_dir):
     #print('done')
     return lhe_file
 
-
-def decision_generator(lhe_file, checkmate_dir, card_file):
-    """This function takes the lhe events generated from the above function and runs them through
-    checkmate and gets a decision if they're allowed or not. Outputs 1 if allowed, a zero if not allowed"""
-    #first we need to edit the checkmate card, so it refers to right lhe_file name
-    path2file = checkmate_dir + card_file
-    with open(path2file, 'r') as file:
-        # read a list of lines into data
-        changes = file.readlines()
-    #make changes
-    changes[14] = 'Events: ' + lhe_file + '\n'
-    # and write everything back
-    with open(card_file, 'w') as file:
-        file.writelines(changes)
-    #time to run checkmate on the card_file which refers to our lhe_file
-    run(['./CheckMATE ' + card_file], cwd = checkmate_dir, shell=True)
-    #results are held in the followinh dir, assuming name is unchanged in checkmate card
-    result_dir = checkmate_dir[:-4] + 'results/scripting_result/result.txt' #its [:-4] to get move out of bin dir
-    #time to collect and output result from this result_dir
-    with open(result_dir, 'r') as file:
-        # just way data is formatted, the result is given by below line
-        file = file.readlines()
-        r_value = float(file[2].split()[-1])
-        analysis = file[3].split()[-1]
-        SR = file[4].split()[-1]
-        #result is if allowed or not
-        if r_value >1:
-            result = 0
-        else:
-            result = 1
-    return {'r_value': r_value, 'analysis': analysis, 'SR': SR, 'LHC': result}
     
 
 def collider_single_point_checker(MD1, MDP, MD3, config_dict):
@@ -165,8 +134,8 @@ def decision_generator(idx, row, lhe_file,  checkmate_dir, card_file_template, o
     #time to run checkmate on our new_card_file which refers to our lhe_file
     run(['./CheckMATE ' + 'scripting_card_files_folder/' + new_card_file], cwd = checkmate_dir, shell=True)
     #lets delete the card file and event file to keep things clean
-    run(['rm ' + 'scripting_card_files_folder/' + new_card_file], cwd = checkmate_dir, shell=True)
-    run(['rm ' + 'scripting_lhe_events_folder/' + lhe_file], cwd = checkmate_dir, shell=True)
+    #run(['rm ' + 'scripting_card_files_folder/' + new_card_file], cwd = checkmate_dir, shell=True)
+    #run(['rm ' + 'scripting_lhe_events_folder/' + lhe_file], cwd = checkmate_dir, shell=True)
     #results are held in the following dir, assuming name is unchanged in checkmate card
     result_dir = checkmate_dir[:-4] + 'results/' + result_name + '/result.txt' #its [:-4] to get move out of bin dir
     #time to collect and output result from this result_dir
@@ -193,6 +162,10 @@ def multiprocessing_decision_generator(config_dict):
     checkmate_dir = config_dict['checkmate_dir']
     card_file_template = config_dict['checkmate_card_file']
     output_csv_file = config_dict['output_csv_file']
+    #raise error if we dont generate all the lhe files
+    if len(lhe_files)!=config_dict['points_in_scan']:
+        raise ValueError('Number of lhe files produced does not match number of points in scan!!!')
+    #the actual parallel processing...
     for idx, lhe_file in tqdm(enumerate(lhe_files), total=float( config_dict['points_in_scan'])):
         row = next(input_scan)
         pool.apply_async(decision_generator, args=(idx, row, lhe_file,  checkmate_dir, card_file_template, output_csv_file) )
