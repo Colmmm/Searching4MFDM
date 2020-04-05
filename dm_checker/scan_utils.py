@@ -95,7 +95,7 @@ def generate_output_scan_template_csv(output_csv='colm_output_scan.csv', input_c
     if fresh_input == True:
         with open(output_csv, 'w') as file:
             writer = csv.writer(file)
-            writer.writerow(['MD3', 'MDP', 'MD1', 'delta_MD3', 'delta_MDP', 'r_value', 'analysis', 'SR','allowed_by_LHC', 'allowed_by_DD', 'allowed_by_ID', 'allowed_by_RD'])
+            writer.writerow(['MD1', 'MDP', 'MD3', 'delta_MDP', 'delta_MD3', 'r_value', 'analysis', 'SR','allowed_by_LHC', 'allowed_by_DD', 'allowed_by_ID', 'allowed_by_RD'])
     else:
         with open(input_csv, 'rw') as input_file, open(output_csv, 'w') as output_file:
             completed_rows = input_file.readlines()[:starting_row]  
