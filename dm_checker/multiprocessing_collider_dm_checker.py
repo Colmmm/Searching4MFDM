@@ -1,11 +1,13 @@
 from scan_utils import run, scan_reader, generate_output_scan_template_csv, store_result
 import csv
 import numpy as np
-from config_dict import config_dict
+#import config_dict
 from tqdm import tqdm
 import multiprocessing as mp
 import os
-
+import sys
+import json
+from importlib import import_module
 
 def batch_file_generator(idx, MD1, MDP, MD3, batch_file, calchep_dir, output_events_basis, num_events, local=True):
     """This edits the calchep batchfile (batch_file), ie changing for a specific parameter combo of MD1, MDP, MD3,
@@ -45,8 +47,8 @@ def batch_file_generator(idx, MD1, MDP, MD3, batch_file, calchep_dir, output_eve
 
 def calchep_dir_cleaner(batch_file, calchep_results_dir, output_events):
     """remove the files we dont need from when we run the batch file"""    
-    run(['rm ' + output_events + '.tgz'], cwd =calchep_results_dir, shell=True)
-    run(['rm ' + output_events + '-single.distr'], cwd =calchep_results_dir, shell=True)
+    run(['rm -rf ' + output_events ], cwd =calchep_results_dir, shell=True)
+    run(['rm ' + output_events + '*'], cwd =calchep_results_dir, shell=True)
     return None
 
 
@@ -74,7 +76,7 @@ def all_lhe_events_generator(config_dict):
     print('\n\nGenerating the lhe events using Calchep for all parameter points in scan!!!\n\n')
     for row in tqdm(scan_reader(input_scan_csv= config_dict['input_csv_file']), total=float( config_dict['points_in_scan'] )):
         #define our masses from our input csv row (order of MD3, MDP and MD1 in scan matters!!!!)
-        idx, MD3, MDP, MD1 = float(row[0]), float(row[1]), float(row[2]), float(row[3])
+        idx, MD1, MDP, MD3 = float(row[0]), float(row[1]), float(row[2]), float(row[3])
         #0.5) calchep doesnt like it when the deltas are exactly the same as we get tan(2_theta) = 1/0, so we have to add a slight offset
         MDP = MDP + 0.0000001
         MD3 = MD3 + 0.0000002
@@ -189,5 +191,7 @@ def complete_multiprocessing_pipeline(config_dict):
     return None
 
 if __name__ == '__main__':
-    #all_lhe_events_generator(config_dict)
+    #so you need to run the command in dm_checker, eg, python multiprocessing_collider_dm_checker.py jsons/CONFIG_DICT_0.json
+    with open(str(sys.argv[1])) as config_dict:
+        config_dict = json.load(config_dict)
     complete_multiprocessing_pipeline(config_dict)
