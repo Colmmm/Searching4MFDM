@@ -34,24 +34,27 @@ def config_dict_editor(node, input_file, output_file, points_in_scan=16, num_eve
         outfile.write(to_unicode(str_))
     return None
 
-def ultimate_multiprocessing_pipeline(input_file, output_file, iridis_batch_dir, nodes=[0,1,2,3]):
+def ultimate_multiprocessing_pipeline(input_file, output_file, iridis_batch_dir, num_events, nodes=[0,1,2,3]):
     """This is assumed to be ran in the dm_checker dir of Searching4MFDM"""
     #mkdir for our new subset scans
     subsets_dir = input_file[:-4] + '/'
     run(['mkdir ' + subsets_dir], shell=True)
     #now we need to edit the config_dicts and run the qsub files
     total_points = pd.read_csv(input_file).shape[0]
+    #this for loop iterates over your input subsets which are also generated in the for loop (from total_points/len(nodes))
     for i, subset in enumerate(pd.read_csv(input_file, index_col=0, chunksize=int(total_points/len(nodes)) )):
         #first define name of our subset scans path
         subset_path = subsets_dir + 'SUBSET_' + str(i) + '.csv'
         subset.to_csv(subset_path)
         #now we edit the correspoinding config dict
-        config_dict_editor(i, subset_path, output_file, points_in_scan=subset.shape[0], num_events=350000)
+        config_dict_editor(nodes[i], subset_path, output_file, points_in_scan=subset.shape[0], num_events=num_events)
         #now we submit our barch file to iridis
-        run(['qsub qsub.dat'], cwd=iridis_batch_dir+'batch_'+str(i), shell=True)
+        run(['qsub qsub.dat'], cwd=iridis_batch_dir+'batch_'+str(nodes[i]), shell=True)
 
 if __name__=='__main__':
     iridis_batch_dir = '/scratch/cwks1g16/Iridis_batch_files/'
-    input_file = '../input_scans/delta_MD3_1_INPUT.csv'
-    output_file = '../output_scans/delta_MD3_1_OUTPUT.csv'
-    ultimate_multiprocessing_pipeline(input_file, output_file, iridis_batch_dir, nodes=[0,1,2,3])
+    input_file = '../input_scans/miss_1_INPUT.csv'
+    output_file = '../output_scans/miss_1_OUTPUT.csv'
+    #input_file = sys.argv[1]
+    #output_file = sys.argv[2]
+    ultimate_multiprocessing_pipeline(input_file, output_file, iridis_batch_dir, num_events=1, nodes=[2])
