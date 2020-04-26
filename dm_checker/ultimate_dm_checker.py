@@ -53,8 +53,6 @@ def ultimate_multiprocessing_pipeline(input_file, output_file, iridis_batch_dir,
 
 if __name__=='__main__':
     iridis_batch_dir = '/scratch/cwks1g16/Iridis_batch_files/'
-    input_file = '../input_scans/miss_1_INPUT.csv'
-    output_file = '../output_scans/miss_1_OUTPUT.csv'
-    #input_file = sys.argv[1]
-    #output_file = sys.argv[2]
-    ultimate_multiprocessing_pipeline(input_file, output_file, iridis_batch_dir, num_events=1, nodes=[2])
+    input_file = '../input_scans/debug_missing_MD3_1gev_INPUT.csv'
+    output_file = '../output_scans/debug_missing_MD3_1gev_OUTPUT.csv'
+    ultimate_multiprocessing_pipeline(input_file, output_file, iridis_batch_dir, num_events=1000000, nodes=[6])

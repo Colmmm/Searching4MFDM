@@ -79,7 +79,7 @@ def all_lhe_events_generator(config_dict):
         idx, MD1, MDP, MD3 = float(row[0]), float(row[1]), float(row[2]), float(row[3])
         #0.5) calchep doesnt like it when the deltas are exactly the same as we get tan(2_theta) = 1/0, so we have to add a slight offset
         MDP = MDP + 0.0000001
-        MD3 = MD3 + 0.0000002
+        MD3 = MD3 + 0.0000003
         # 1)create the batch file (note variable batch_file is just the str of the name of the batch file)
         output_events, batch_file = batch_file_generator(idx, MD1, MDP, MD3, config_dict['calchep_batch_file'], config_dict['calchep_dir'], config_dict['calchep_output_events'], config_dict['num_events'], config_dict['local'])
         # 2) Create the lhe files (note variable lhe_file is just the string of the lhe events file name)
@@ -109,38 +109,48 @@ def clean_checkmate_dir(checkmate_dir, checkmate_output_name, lhe_file, new_card
     return None
 
 def result_storer(row, result_dir, checkmate_dir, output_csv_file):
+    #missing values caused by result.txt having one more element from more MC events needed warning (+1 to index)
     #time to collect and output result from this result_dir
     with open(result_dir, 'r') as file:
         # just way data is formatted, the result is given by below line
         file = file.readlines()
-        r_value = float(file[2].split()[-1])
-        analysis = file[3].split()[-1]
-        SR = file[4].split()[-1]
-        #result is if allowed or not
-        if r_value >1:
+        if len(file)==5:
+            r_value = float(file[2].split()[-1])
+            analysis = file[3].split()[-1]
+            SR = file[4].split()[-1]
+        elif len(file)==6:
+            r_value = float(file[3].split()[-1])
+            analysis = file[4].split()[-1]
+            SR = file[5].split()[-1]
+        else:
+            raise ValueError('Length of results file is=' + str(len(file) + ' but shoukd only be 5(normal) or 6 (more MC)'))
+        if r_value>=1:
             result = 0
         else:
             result = 1
     output = {'r_value': r_value, 'analysis': analysis, 'SR': SR, 'LHC': result}
     store_result(input_row=row, output_csv=output_csv_file, **output)
-    return None   
+    return None      
 
 def decision_generator(idx, row, lhe_file,  checkmate_dir, card_file_template, output_csv_file, checkmate_output_name):
     """This function takes the lhe events generated from the above function and runs them through
     checkmate and gets a decision if they're allowed or not. Outputs 1 if allowed, a zero if not allowed"""
     #lets define some paths our path to our card.dat template and the name of the result file
     checkmate_result_file_name = checkmate_output_name + '_checkmate_output_' + str(int(idx))
-    #generate our checkmate card file
+    #generate our checkmate card file 
     new_card_file = checkmate_card_generator(idx, checkmate_dir, card_file_template, checkmate_output_name, lhe_file, checkmate_result_file_name)
-    #time to run checkmate on our new_card_file which refers to our lhe_file
+    #time to run checkmate on our new_card_file which refers to our lhe_file also print current parameter point
+    print('\n\n\nEVALUATING PARAMETER POINT %s:\n\nMD1 = %s\nMDP = %s\nMD3 = %s\n\n' % (row[0],row[1],row[2],row[3]))
     run(['./CheckMATE ' + checkmate_output_name + '_card_subdir/' + new_card_file], cwd = checkmate_dir, shell=True)
-    #clean checkmate dir by removing lhe and card files
+    #!!!!!!!!!toggle this to not del the lhe card files!!!!!clean checkmate dir by removing lhe and card files
     clean_checkmate_dir(checkmate_dir, checkmate_output_name, lhe_file, new_card_file)
     #results are held in the following dir, assuming name is unchanged in checkmate card
     result_dir = checkmate_dir[:-4] + 'results/' + checkmate_result_file_name + '/result.txt' #its [:-4] to get move out of bin dir
     print(result_dir)
     #now lets store the result
     result_storer(row, result_dir, checkmate_dir, output_csv_file)
+    #!!!!!!remove result dir to save space (TOGGLE THIS ONE TO SAVE CHECKMATE RESULT)
+    run(['rm -rf ' + checkmate_result_file_name ], cwd = checkmate_dir[:-4]+'results/', shell=True)
     return None
 
 
@@ -171,10 +181,10 @@ def generate_checkmate_subdirs(config_dict):
     return None
 
 def remove_checkmate_subdirs(config_dict):
-    #first remove the lhe_subdir
-    run(['rm -rf ' + config_dict['checkmate_output_name'] + '_lhe_subdir/'], cwd = config_dict['checkmate_dir'], shell=True)
+    #first remove the lhe_subdir (I HAVE REOMOVED RF, AS HOPEFULLY THEY SHOULD BE EMPTY, IF NOT, THEN I DONT WANT THEM DELETED ANYWAY)
+    run(['rm ' + config_dict['checkmate_output_name'] + '_lhe_subdir/'], cwd = config_dict['checkmate_dir'], shell=True)
     #then remove the card_subdir
-    run(['rm -rf ' + config_dict['checkmate_output_name'] + '_card_subdir/'], cwd = config_dict['checkmate_dir'], shell=True)
+    run(['rm ' + config_dict['checkmate_output_name'] + '_card_subdir/'], cwd = config_dict['checkmate_dir'], shell=True)
     return None
 
 def complete_multiprocessing_pipeline(config_dict):
@@ -186,7 +196,7 @@ def complete_multiprocessing_pipeline(config_dict):
     all_lhe_events_generator(config_dict)
     #lets start the parallel processing of the lhe events using checkmate!!!
     multiprocessing_decision_generator(config_dict)
-    #once were done, we can remove the checkmate subdirs
+    #once were done, we can remove the checkmate subdirs (the 2 subdirs (cards and lhe) made for a given scan)
     remove_checkmate_subdirs(config_dict)
     return None
 

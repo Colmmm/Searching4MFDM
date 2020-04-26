@@ -6,10 +6,10 @@
     "checkmate_dir": "/scratch/cwks1g16/Checkmate/bin/",
     "checkmate_output_name": "iridis_batch_6",
     "fresh_input": true,
-    "input_csv_file": "../input_scans/delta_MD3_300/delta_MD3_300_INPUT_SUBSET_6.csv",
+    "input_csv_file": "../input_scans/debug_missing_MD3_1gev_INPUT/SUBSET_0.csv",
     "local": false,
-    "num_events": 250000,
-    "output_csv_file": "../output_scans/delta_MD3_300_OUTPUT.csv",
-    "points_in_scan": 16,
+    "num_events": 1000000,
+    "output_csv_file": "../output_scans/debug_missing_MD3_1gev_OUTPUT.csv",
+    "points_in_scan": 64,
     "starting_row": 0
 }

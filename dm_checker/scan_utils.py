@@ -108,7 +108,7 @@ def store_result(input_row,  output_csv, allowed_dict = {'r_value':0,'analysis':
     put each value in the df. This function thus stores a result (values for allowed or not + extra) in the output csv, we need input row to also
     store the masses in the output file.
     """
-    #define the cols to do with if a result is allowed or not, as theyre the ones which could potentially change
+    #define the cols to do with if the actual result from checkmate, like SR,r_value as theyre the ones we will need to change
     allowed_cols = input_row[6:]
     # exact col of allowed_cols depends on search_type, and needs to be changed depending on the result
     #kwargs is our result and should be a dict, containing the search type and result, eg, {'RD': 0}
