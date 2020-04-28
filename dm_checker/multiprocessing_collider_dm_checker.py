@@ -7,6 +7,7 @@ import multiprocessing as mp
 import os
 import sys
 import json
+from fnmatch import filter
 from importlib import import_module
 
 def batch_file_generator(idx, MD1, MDP, MD3, batch_file, calchep_dir, output_events_basis, num_events, local=True):
@@ -80,14 +81,15 @@ def all_lhe_events_generator(config_dict):
         #0.5) calchep doesnt like it when the deltas are exactly the same as we get tan(2_theta) = 1/0, so we have to add a slight offset
         MDP = MDP + 0.0000001
         MD3 = MD3 + 0.0000003
-        # 1)create the batch file (note variable batch_file is just the str of the name of the batch file)
-        output_events, batch_file = batch_file_generator(idx, MD1, MDP, MD3, config_dict['calchep_batch_file'], config_dict['calchep_dir'], config_dict['calchep_output_events'], config_dict['num_events'], config_dict['local'])
-        # 2) Create the lhe files (note variable lhe_file is just the string of the lhe events file name)
-        lhe_file = events_generator(config_dict['calchep_batch_file'], config_dict['calchep_dir'], output_events, config_dict['checkmate_dir'], config_dict['checkmate_output_name'])
+        for i, batch_file in enumerate(config_dict['calchep_batch_file']):    
+            # 1)create the batch file (note variable batch_file is just the str of the name of the batch file)
+            output_events, batch_file = batch_file_generator(idx, MD1, MDP, MD3, batch_file, config_dict['calchep_dir'], config_dict['calchep_output_events'][i], config_dict['num_events'][i], config_dict['local'])
+            # 2) Create the lhe files (note variable lhe_file is just the string of the lhe events file name)
+            lhe_file = events_generator(batch_file, config_dict['calchep_dir'], output_events, config_dict['checkmate_dir'], config_dict['checkmate_output_name'])
     print('\n\nDone generating all lhe events for all parameter points in scan!!!\n\n ')
     return None
 
-def checkmate_card_generator(idx, checkmate_dir, card_file_template, checkmate_output_name, lhe_file, checkmate_result_file_name):
+def checkmate_card_generator(idx, checkmate_dir, card_file_template, checkmate_output_name, lhe_files, checkmate_result_file_name):
     """we need to create the checkmate card, so that it refers to right lhe_file, do this by editing a template card file.
      This outputs the name of the new_card_file which is then needed to run the actual ./Checkmate command"""
     with open(checkmate_dir + card_file_template, 'r') as template:
@@ -95,7 +97,12 @@ def checkmate_card_generator(idx, checkmate_dir, card_file_template, checkmate_o
         changes = template.readlines()
     #make changes to template 
     changes[3] = 'Name: ' + checkmate_result_file_name + '\n'
-    changes[14] = 'Events: ' + checkmate_output_name+  '_lhe_subdir/' + lhe_file + '\n'
+    #need to add the bit for the lhe files, which could be more than one:
+    for i, lhe_file in enumerate(lhe_files):
+        #first add two more lines, ie, two more elements to end of the list called 'changes' then edit those
+        changes+=['', ''] 
+        changes[-2] = '[myprocess' + str(i+1) + ']\n'
+        changes[-1] = 'Events:'+checkmate_output_name+'_lhe_subdir/'+lhe_file+'\n\n'
     #and then we write it to a new file!!!!
     new_card_file = 'scripting_card_' + str(int(idx)) + '.dat'
     with open(checkmate_dir + checkmate_output_name + '_card_subdir/' + new_card_file, 'w') as file:
@@ -105,12 +112,14 @@ def checkmate_card_generator(idx, checkmate_dir, card_file_template, checkmate_o
 def clean_checkmate_dir(checkmate_dir, checkmate_output_name, lhe_file, new_card_file):
     #lets delete the card file and event file to keep things clean and save memory
     run(['rm ' + checkmate_output_name + '_card_subdir/' + new_card_file], cwd = checkmate_dir, shell=True)
-    run(['rm ' + checkmate_output_name + '_lhe_subdir/' + lhe_file], cwd = checkmate_dir, shell=True)
+    for one_lhe_file in lhe_file:
+        run(['rm ' + checkmate_output_name + '_lhe_subdir/' + one_lhe_file], cwd = checkmate_dir, shell=True)
     return None
 
 def result_storer(row, result_dir, checkmate_dir, output_csv_file):
     #missing values caused by result.txt having one more element from more MC events needed warning (+1 to index)
     #time to collect and output result from this result_dir
+    print('\n\nI am reaching here?!!!!!!!!\n\n')
     with open(result_dir, 'r') as file:
         # just way data is formatted, the result is given by below line
         file = file.readlines()
@@ -156,17 +165,19 @@ def decision_generator(idx, row, lhe_file,  checkmate_dir, card_file_template, o
 
 def multiprocessing_decision_generator(config_dict):
     print('\n\nLets start the parallel processing of the lhe events using checkmate!!!\n\n')
-    #difne our scan_reader, which is a generator we can iterate over to produce each  point in the scan
+    #define our scan_reader, which is a generator we can iterate over to produce each  point in the scan
     input_scan = scan_reader(config_dict['input_csv_file'])
-    #now define the list of lhe files generated from our scan
+    #now define the list of lhe files generated from our scan within our checkmate lhe subdir
     lhe_files = os.listdir(config_dict['checkmate_dir'] + config_dict['checkmate_output_name']+ '_lhe_subdir/')
     #raise error if we dont generate all the lhe files
-    if len(lhe_files)!= config_dict['points_in_scan']:
+    if len(lhe_files)!= config_dict['points_in_scan']*len(config_dict["calchep_output_events"]):
         raise ValueError('Number of lhe files produced does not match number of points in scan!!!')
     #the actual parallel processing...
     pool = mp.Pool(mp.cpu_count())
-    for idx, lhe_file in tqdm(enumerate(lhe_files), total=float( config_dict['points_in_scan'])):
+    for i in range(config_dict['points_in_scan']):
         row = next(input_scan)
+        idx = int(row[0]) #new line from 27/04
+        lhe_file = filter(lhe_files, '*'+str(idx)+'*')
         pool.apply_async(decision_generator, args=(idx, row, lhe_file,  config_dict['checkmate_dir'], config_dict['card_file_template'], config_dict['output_csv_file'], config_dict['checkmate_output_name']) )
     pool.close()
     pool.join()
@@ -182,13 +193,13 @@ def generate_checkmate_subdirs(config_dict):
 
 def remove_checkmate_subdirs(config_dict):
     #first remove the lhe_subdir (I HAVE REOMOVED RF, AS HOPEFULLY THEY SHOULD BE EMPTY, IF NOT, THEN I DONT WANT THEM DELETED ANYWAY)
-    run(['rm ' + config_dict['checkmate_output_name'] + '_lhe_subdir/'], cwd = config_dict['checkmate_dir'], shell=True)
+    run(['rm -rf' + config_dict['checkmate_output_name'] + '_lhe_subdir/'], cwd = config_dict['checkmate_dir'], shell=True)
     #then remove the card_subdir
-    run(['rm ' + config_dict['checkmate_output_name'] + '_card_subdir/'], cwd = config_dict['checkmate_dir'], shell=True)
+    run(['rm -rf' + config_dict['checkmate_output_name'] + '_card_subdir/'], cwd = config_dict['checkmate_dir'], shell=True)
     return None
 
 def complete_multiprocessing_pipeline(config_dict):
-    #first lets generate the output csv file
+    #first lets generate the output csv file. BEWARE, if batches run so out of sync, then below line will overwrite results of other batches
     generate_output_scan_template_csv(output_csv= config_dict['output_csv_file'], input_csv=config_dict['input_csv_file'], fresh_input=config_dict['fresh_input'], starting_row=config_dict['starting_row'])
     #second lets generate the lhe_subdir and card_subdir, that we will need to store our checkmate related files
     generate_checkmate_subdirs(config_dict)
