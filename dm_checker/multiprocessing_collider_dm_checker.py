@@ -79,7 +79,7 @@ def all_lhe_events_generator(config_dict):
         #define our masses from our input csv row (order of MD3, MDP and MD1 in scan matters!!!!)
         idx, MD1, MDP, MD3 = float(row[0]), float(row[1]), float(row[2]), float(row[3])
         #0.5) calchep doesnt like it when the deltas are exactly the same as we get tan(2_theta) = 1/0, so we have to add a slight offset
-        MDP = MDP + 0.0000001
+        MDP = MDP + 0.1  #if mass split is too low, then D+ will not decay and that will break the universe as we know it
         MD3 = MD3 + 0.0000003
         for i, batch_file in enumerate(config_dict['calchep_batch_file']):    
             # 1)create the batch file (note variable batch_file is just the str of the name of the batch file)
@@ -177,7 +177,7 @@ def multiprocessing_decision_generator(config_dict):
     for i in range(config_dict['points_in_scan']):
         row = next(input_scan)
         idx = int(row[0]) #new line from 27/04
-        lhe_file = filter(lhe_files, '*'+str(idx)+'*')
+        lhe_file = filter(lhe_files, '*_'+str(idx)+'-single.lhe')
         pool.apply_async(decision_generator, args=(idx, row, lhe_file,  config_dict['checkmate_dir'], config_dict['card_file_template'], config_dict['output_csv_file'], config_dict['checkmate_output_name']) )
     pool.close()
     pool.join()
@@ -193,9 +193,9 @@ def generate_checkmate_subdirs(config_dict):
 
 def remove_checkmate_subdirs(config_dict):
     #first remove the lhe_subdir (I HAVE REOMOVED RF, AS HOPEFULLY THEY SHOULD BE EMPTY, IF NOT, THEN I DONT WANT THEM DELETED ANYWAY)
-    run(['rm -rf' + config_dict['checkmate_output_name'] + '_lhe_subdir/'], cwd = config_dict['checkmate_dir'], shell=True)
+    run(['rm -rf ' + config_dict['checkmate_output_name'] + '_lhe_subdir/'], cwd = config_dict['checkmate_dir'], shell=True)
     #then remove the card_subdir
-    run(['rm -rf' + config_dict['checkmate_output_name'] + '_card_subdir/'], cwd = config_dict['checkmate_dir'], shell=True)
+    run(['rm -rf ' + config_dict['checkmate_output_name'] + '_card_subdir/'], cwd = config_dict['checkmate_dir'], shell=True)
     return None
 
 def complete_multiprocessing_pipeline(config_dict):
