@@ -1,0 +1,69 @@
+##################################
+# Model Info                     #
+##################################
+Model:         FDM-majorana_final
+Model changed: False
+Gauge:         Feynman
+
+###############################################
+#  Parameter Info                             #
+###############################################
+Parameter: MD1 = 107.0        #line 11
+Parameter: MDP = 131.1        #line 12
+Parameter: MD3 = 132.0000003        #line 13
+
+###############################################
+#  Process Info                               #
+###############################################
+Process:   p,p->~1+,~o2
+Process:   p,p->~1+,~o3
+Process:   p,p->~1-,~o2
+Process:   p,p->~1-,~o3
+Alias: p=u,U,d,D,s,S,c,C,b,B,G
+Alias: el+=E,M,L
+Alias: el-=e,m,l
+Alias: neu=ne,nm,nl
+Alias: Neu=Ne,Nm,Nl
+Decay: ~o2->el+,el-,~o1
+Decay: ~o3->el+,neu,~1-
+Decay: ~o3->el-,Neu,~1+
+Decay: ~o3->el-,el+,~o2
+Remove: H
+##############################################
+#             PDF Info                       #
+##############################################
+pdf1:      PDT:cteq6l1(proton)
+pdf2:      PDT:cteq6l1(proton)
+###############################################
+#  Momentum Info                              #
+###############################################
+p1:        6500
+p2:        6500
+Max lumi: 999999999999999999999999999999999999
+###############################################
+#  Events Generation                          #
+###############################################
+Number of events (per run step):  400000      #line 46
+Filename:                        lhe_events_C_4       #line 47
+NTuple:                          False
+Cleanup:                         False
+
+
+###############################################
+#  Parallelization Info                       #
+###############################################
+Parallelization method	:	local
+Max number of cpus:   16        #line 56
+sleep time	:	3
+Cleanup:                         False
+
+
+###############################################
+#  Parallelization Info                       #
+###############################################
+Parallelization method  :	local
+Max number of cpus:   16        #line 56
+sleep time	:	3
+
+
+
