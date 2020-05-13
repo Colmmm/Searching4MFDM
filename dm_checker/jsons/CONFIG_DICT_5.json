@@ -1,15 +1,27 @@
 {
-    "calchep_batch_file": "MFDM_BATCH_FILE",
+    "calchep_batch_file": [
+        "MFDM_BATCH_FILE_A",
+        "MFDM_BATCH_FILE_B",
+        "MFDM_BATCH_FILE_C"
+    ],
     "calchep_dir": "/scratch/cwks1g16/Calcheps/Calchep_5/",
-    "calchep_output_events": "lhe_events",
+    "calchep_output_events": [
+        "lhe_events_A",
+        "lhe_events_B",
+        "lhe_events_C"
+    ],
     "card_file_template": "SCRIPTING_CHECKMATE_CARD_TEMPLATE.dat",
     "checkmate_dir": "/scratch/cwks1g16/Checkmate/bin/",
     "checkmate_output_name": "iridis_batch_5",
     "fresh_input": true,
-    "input_csv_file": "../input_scans/test_point_INPUT/SUBSET_0.csv",
+    "input_csv_file": "../input_scans/PLS_DMD3_1_AND_100_GEV_IN/SUBSET_0.csv",
     "local": false,
-    "num_events": 1,
-    "output_csv_file": "../output_scans/test_point_OUTPUT.csv",
-    "points_in_scan": 1,
+    "num_events": [
+        50000,
+        150000,
+        100000
+    ],
+    "output_csv_file": "../output_scans/sil_vous_plait_dmd3_1_or_100_OUT.csv",
+    "points_in_scan": 32,
     "starting_row": 0
 }

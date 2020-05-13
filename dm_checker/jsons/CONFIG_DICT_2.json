@@ -1,15 +1,27 @@
 {
-    "calchep_batch_file": "MFDM_BATCH_FILE",
+    "calchep_batch_file": [
+        "MFDM_BATCH_FILE_A",
+        "MFDM_BATCH_FILE_B",
+        "MFDM_BATCH_FILE_C"
+    ],
     "calchep_dir": "/scratch/cwks1g16/Calcheps/Calchep_2/",
-    "calchep_output_events": "lhe_events",
+    "calchep_output_events": [
+        "lhe_events_A",
+        "lhe_events_B",
+        "lhe_events_C"
+    ],
     "card_file_template": "SCRIPTING_CHECKMATE_CARD_TEMPLATE.dat",
     "checkmate_dir": "/scratch/cwks1g16/Checkmate/bin/",
     "checkmate_output_name": "iridis_batch_2",
     "fresh_input": true,
-    "input_csv_file": "../input_scans/miss_1_INPUT/SUBSET_0.csv",
+    "input_csv_file": "../input_scans/I_didnt_destroy_universe_1000_IN/SUBSET_2.csv",
     "local": false,
-    "num_events": 1,
-    "output_csv_file": "../output_scans/miss_1_OUTPUT.csv",
-    "points_in_scan": 8,
+    "num_events": [
+        50000,
+        150000,
+        100000
+    ],
+    "output_csv_file": "../output_scans/I_didnt_destroy_universe_1000_OUT.csv",
+    "points_in_scan": 64,
     "starting_row": 0
 }

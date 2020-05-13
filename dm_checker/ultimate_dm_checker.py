@@ -53,6 +53,6 @@ def ultimate_multiprocessing_pipeline(input_file, output_file, iridis_batch_dir,
 
 if __name__=='__main__':
     iridis_batch_dir = '/scratch/cwks1g16/Iridis_batch_files/'
-    input_file = '../input_scans/dont_destroy_the_universe_IN.csv'
-    output_file = '../output_scans/dont_destroy_the_universe_OUT.csv'
-    ultimate_multiprocessing_pipeline(input_file, output_file, iridis_batch_dir, num_events=[50000,150000,100000], nodes=[0,1,2,3])
+    input_file = '../input_scans/post_submit_scan4Sasha_1gev.csv'
+    output_file = '../output_scans/post_submit_scan4Sasha_1gev_OUT.csv'
+    ultimate_multiprocessing_pipeline(input_file, output_file, iridis_batch_dir, num_events=[200000,600000,400000], nodes=[0])

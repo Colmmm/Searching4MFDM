@@ -1,15 +1,27 @@
 {
-    "calchep_batch_file": "MFDM_BATCH_FILE",
+    "calchep_batch_file": [
+        "MFDM_BATCH_FILE_A",
+        "MFDM_BATCH_FILE_B",
+        "MFDM_BATCH_FILE_C"
+    ],
     "calchep_dir": "/scratch/cwks1g16/Calcheps/Calchep_0/",
-    "calchep_output_events": "lhe_events",
+    "calchep_output_events": [
+        "lhe_events_A",
+        "lhe_events_B",
+        "lhe_events_C"
+    ],
     "card_file_template": "SCRIPTING_CHECKMATE_CARD_TEMPLATE.dat",
     "checkmate_dir": "/scratch/cwks1g16/Checkmate/bin/",
     "checkmate_output_name": "iridis_batch_0",
     "fresh_input": true,
-    "input_csv_file": "../input_scans/same_deltas_test_INPUT/SUBSET_0.csv",
+    "input_csv_file": "../input_scans/post_submit_scan4Sasha_1gev/SUBSET_0.csv",
     "local": false,
-    "num_events": 600000,
-    "output_csv_file": "../output_scans/same_deltas_test_OUTPUT.csv",
-    "points_in_scan": 1,
+    "num_events": [
+        200000,
+        600000,
+        400000
+    ],
+    "output_csv_file": "../output_scans/post_submit_scan4Sasha_1gev_OUT.csv",
+    "points_in_scan": 130,
     "starting_row": 0
 }
